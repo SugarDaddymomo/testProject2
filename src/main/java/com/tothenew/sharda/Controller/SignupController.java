@@ -1,6 +1,5 @@
 package com.tothenew.sharda.Controller;
 
-import com.tothenew.sharda.Dto.LoginDao;
 import com.tothenew.sharda.Dto.SignupCustomerDao;
 import com.tothenew.sharda.Dto.SignupSellerDao;
 import com.tothenew.sharda.Email.EmailSender;
@@ -9,19 +8,13 @@ import com.tothenew.sharda.Model.Role;
 import com.tothenew.sharda.Model.Seller;
 import com.tothenew.sharda.Model.User;
 import com.tothenew.sharda.RegistrationConfig.RegistrationService;
-import com.tothenew.sharda.RegistrationConfig.Token.ConfirmationTokenService;
 import com.tothenew.sharda.Repository.CustomerRepository;
 import com.tothenew.sharda.Repository.RoleRepository;
 import com.tothenew.sharda.Repository.SellerRepository;
 import com.tothenew.sharda.Repository.UserRepository;
-import com.tothenew.sharda.Service.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,12 +23,8 @@ import java.util.Collections;
 
 @RestController
 @RequestMapping("/api/auth")
-public class AuthController {
+public class SignupController {
 
-    @Autowired
-    CustomUserDetailsService userService;
-    @Autowired
-    AuthenticationManager authenticationManager;
     @Autowired
     UserRepository userRepository;
     @Autowired
@@ -50,16 +39,6 @@ public class AuthController {
     RegistrationService registrationService;
     @Autowired
     EmailSender emailSender;
-
-    @PostMapping("/signin")
-    public ResponseEntity<String> authenticateUser(@RequestBody LoginDao loginDao) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken
-                        (loginDao.getEmail(), loginDao.getPassword())
-        );
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        return new ResponseEntity<>("User signed-in successfully!", HttpStatus.OK);
-    }
 
     @PostMapping("/customer/signup")
     public ResponseEntity<?> registerAsCustomer(@Valid @RequestBody SignupCustomerDao signupCustomerDao) {
@@ -129,5 +108,10 @@ public class AuthController {
     @GetMapping(path = "/seller/confirm")
     public String confirmSeller(@RequestParam("token") String token) {
         return "Oops! You cannot activate this account, Contact Admin to get approval!!";
+    }
+
+    @PostMapping(path = "/customer/confirm")
+    public String confirmByEmail(@RequestParam("email") String email) {
+        return registrationService.confirmByEmail(email);
     }
 }
