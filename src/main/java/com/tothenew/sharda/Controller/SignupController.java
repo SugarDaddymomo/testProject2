@@ -22,7 +22,7 @@ import javax.validation.Valid;
 import java.util.Collections;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/signup")
 public class SignupController {
 
     @Autowired
@@ -40,7 +40,7 @@ public class SignupController {
     @Autowired
     EmailSender emailSender;
 
-    @PostMapping("/customer/signup")
+    @PostMapping("/customer")
     public ResponseEntity<?> registerAsCustomer(@Valid @RequestBody SignupCustomerDao signupCustomerDao) {
         if (userRepository.existsByEmail(signupCustomerDao.getEmail())) {
             return new ResponseEntity<>("Email is already taken!", HttpStatus.BAD_REQUEST);
@@ -62,7 +62,7 @@ public class SignupController {
 
         String token = registrationService.generateToken(user);
 
-        String link = "http://localhost:4545/api/auth/customer/confirm?token="+token;
+        String link = "http://localhost:4545/api/signup/customer/confirm?token="+token;
         emailSender.send(signupCustomerDao.getEmail(), registrationService.buildEmail(signupCustomerDao.getFirstName(), link));
         return new ResponseEntity<>(
                 "Customer Registered Successfully!\nHere is your activation token use it with in 15 minutes\n"+token,
@@ -70,7 +70,7 @@ public class SignupController {
         );
     }
 
-    @PostMapping("/seller/signup")
+    @PostMapping("/seller")
     public ResponseEntity<?> registerAsSeller(@Valid @RequestBody SignupSellerDao signupSellerDao) {
         if (userRepository.existsByEmail(signupSellerDao.getEmail())) {
             return new ResponseEntity<>("Email is already taken!", HttpStatus.BAD_REQUEST);
@@ -92,7 +92,7 @@ public class SignupController {
 
         String token = registrationService.generateToken(user);
 
-        String link = "http://localhost:4545/api/auth/seller/confirm?token="+token;
+        String link = "http://localhost:4545/api/signup/seller/confirm?token="+token;
         emailSender.send(signupSellerDao.getEmail(), registrationService.buildEmail(signupSellerDao.getFirstName(), link));
 
         return new ResponseEntity<>(

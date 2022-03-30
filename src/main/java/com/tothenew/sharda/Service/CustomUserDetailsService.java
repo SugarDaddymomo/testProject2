@@ -12,11 +12,14 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
+
+    public static final int MAX_FAILED_ATTEMPTS = 3;
 
     @Autowired
     UserRepository userRepository;
@@ -38,5 +41,22 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     public int enableUser(String email) {
         return userRepository.enableUser(email);
+    }
+
+    public void disableUser(String email) {
+        userRepository.disableUser(email);
+    }
+
+    public void increaseFailedAttempts(Optional<User> user) {
+        int newFailAttempts = user.get().getInvalidAttemptCount()+1;
+        userRepository.updateInvalidAttemptCount(newFailAttempts, user.get().getEmail());
+    }
+
+    public void resetFailedAttempts(String email) {
+        userRepository.updateInvalidAttemptCount(0, email);
+    }
+
+    public void lock(Optional<User> user) {
+        user.get().setIsLocked(true);
     }
 }

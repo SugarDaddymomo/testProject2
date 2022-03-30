@@ -20,4 +20,16 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("UPDATE User a " +
             "SET a.isActive = TRUE WHERE a.email = ?1")
     int enableUser(String email);
+
+    @Transactional
+    @Modifying
+    @Query("UPDATE User a " +
+            "SET a.isActive = FALSE WHERE a.email = ?1")
+    void disableUser(String email);
+
+    @Transactional
+    @Modifying
+    @Query("UPDATE User a " +
+            "SET a.invalidAttemptCount = ?1 WHERE a.email = ?2")
+    void updateInvalidAttemptCount(Integer invalidAttemptCount, String email);
 }

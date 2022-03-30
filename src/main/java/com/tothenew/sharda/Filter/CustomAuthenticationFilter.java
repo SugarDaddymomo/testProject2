@@ -3,11 +3,13 @@ package com.tothenew.sharda.Filter;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tothenew.sharda.Email.EmailSender;
 import com.tothenew.sharda.RegistrationConfig.RegistrationService;
+import com.tothenew.sharda.Repository.UserRepository;
+import com.tothenew.sharda.Service.CustomUserDetailsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -24,6 +26,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -34,7 +37,9 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     @Autowired
     RegistrationService registrationService;
     @Autowired
-    EmailSender emailSender;
+    UserRepository userRepository;
+    @Autowired
+    CustomUserDetailsService userService;
 
     private final AuthenticationManager authenticationManager;
 
@@ -79,11 +84,27 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
         log.info("Authentication Failed!");
         String email = request.getParameter("email");
-        String link = registrationService.buildLoginFailure(email);
-        emailSender.send(email, link);
+//        String link = registrationService.buildLoginFailure(email);
+//        emailSender.send(email, link);
+
+//        Optional<com.tothenew.sharda.Model.User> user = userRepository.findByEmail(email);
+//
+//        if (user != null) {
+//            if (user.get().getIsActive() && user.get().getIsLocked()) {
+//                if (user.get().getInvalidAttemptCount() < userService.MAX_FAILED_ATTEMPTS - 1) {
+//                    userService.increaseFailedAttempts(user);
+//                } else {
+//                    userService.lock(user);
+//                    log.info("Account locked!");
+//                    failed = new LockedException("Your account has been locked due to 3 failed attempts.");
+//                }
+//            }
+//        }
+
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(APPLICATION_JSON_VALUE);
         response.getWriter().print(failed.getLocalizedMessage());
         response.getWriter().flush();
+//        super.unsuccessfulAuthentication(request, response, failed);
     }
 }
