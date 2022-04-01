@@ -11,9 +11,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.Collection;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -59,5 +57,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     public void lock(Optional<User> user) {
         user.get().setIsLocked(true);
+    }
+
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 }

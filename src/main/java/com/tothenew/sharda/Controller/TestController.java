@@ -1,9 +1,13 @@
 package com.tothenew.sharda.Controller;
 
+import com.tothenew.sharda.Model.User;
 import com.tothenew.sharda.RegistrationConfig.RegistrationService;
+import com.tothenew.sharda.Service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -12,6 +16,8 @@ public class TestController {
 
     @Autowired
     RegistrationService registrationService;
+    @Autowired
+    UserDetailsServiceImpl userDetailsService;
 
     @GetMapping("/all")
     public String allAccess() {
@@ -40,5 +46,11 @@ public class TestController {
     @PreAuthorize("hasRole('ADMIN')")
     public String confirmSeller(@RequestParam("token") String token) {
         return registrationService.confirmToken(token);
+    }
+
+    @GetMapping("/admin/customerlist")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<User> returnCustomers() {
+        return userDetailsService.getAllUsers();
     }
 }
