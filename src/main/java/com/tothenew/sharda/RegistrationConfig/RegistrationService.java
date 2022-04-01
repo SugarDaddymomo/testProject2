@@ -8,7 +8,7 @@ import com.tothenew.sharda.RegistrationConfig.Token.ConfirmationToken;
 import com.tothenew.sharda.RegistrationConfig.Token.ConfirmationTokenRepository;
 import com.tothenew.sharda.RegistrationConfig.Token.ConfirmationTokenService;
 import com.tothenew.sharda.Repository.UserRepository;
-import com.tothenew.sharda.Service.CustomUserDetailsService;
+import com.tothenew.sharda.Service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +24,7 @@ public class RegistrationService {
     @Autowired
     UserRepository userRepository;
     @Autowired
-    CustomUserDetailsService userService;
+    UserDetailsServiceImpl userService;
     @Autowired
     ConfirmationTokenService confirmationTokenService;
     @Autowired

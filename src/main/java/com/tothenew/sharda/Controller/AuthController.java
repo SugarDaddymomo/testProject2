@@ -1,5 +1,8 @@
 package com.tothenew.sharda.Controller;
 
+import com.tothenew.sharda.Dto.LoginDao;
+import com.tothenew.sharda.Dto.Response.MessageResponse;
+import com.tothenew.sharda.Dto.Response.UserInfoResponse;
 import com.tothenew.sharda.Dto.SignupCustomerDao;
 import com.tothenew.sharda.Dto.SignupSellerDao;
 import com.tothenew.sharda.Email.EmailSender;
@@ -12,19 +15,34 @@ import com.tothenew.sharda.Repository.CustomerRepository;
 import com.tothenew.sharda.Repository.RoleRepository;
 import com.tothenew.sharda.Repository.SellerRepository;
 import com.tothenew.sharda.Repository.UserRepository;
+import com.tothenew.sharda.Security.JwtUtils;
+import com.tothenew.sharda.Service.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/api/signup")
-public class SignupController {
+@RequestMapping("/api/auth")
+public class AuthController {
 
+    @Autowired
+    AuthenticationManager authenticationManager;
+    @Autowired
+    JwtUtils jwtUtils;
     @Autowired
     UserRepository userRepository;
     @Autowired
@@ -100,14 +118,32 @@ public class SignupController {
                 HttpStatus.CREATED);
     }
 
-    @PutMapping(path = "/customer/confirm")
-    public String confirm(@RequestParam("token") String token) {
-        return registrationService.confirmToken(token);
+    @PostMapping("/signin")
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginDao loginRequest) {
+        Authentication authentication = authenticationManager
+                .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
+        List<String> roles = userDetails.getAuthorities().stream()
+                .map(item -> item.getAuthority())
+                .collect(Collectors.toList());
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
+                .body(new UserInfoResponse(userDetails.getId(),
+                        userDetails.getEmail(),
+                        roles));
     }
 
-    @GetMapping(path = "/seller/confirm")
-    public String confirmSeller(@RequestParam("token") String token) {
-        return "Oops! You cannot activate this account, Contact Admin to get approval!!";
+    @PostMapping("/signout")
+    public ResponseEntity<?> logoutUser() {
+        ResponseCookie cookie = jwtUtils.getCleanJwtCookie();
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(new MessageResponse("You've been signed out!"));
+    }
+
+    @PutMapping(path = "/confirm")
+    public String confirm(@RequestParam("token") String token) {
+        return registrationService.confirmToken(token);
     }
 
     @PostMapping(path = "/customer/confirm")
